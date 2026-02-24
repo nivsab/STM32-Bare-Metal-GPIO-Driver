@@ -2,6 +2,8 @@
 
 #ifndef STM32F405_DEVICE_H_
 #define STM32F405_DEVICE_H_
+#define EXTI    ((EXTI_RegDef_t*)0x40013C00U)
+#define SYSCFG  ((SYSCFG_RegDef_t*)0x40013800U)
 
 #define __vo volatile
 
@@ -101,6 +103,24 @@ typedef struct
 	uint8_t GPIO_PinAltFunMode;
 }GPIO_PinConfig_t;
 
+
+typedef struct {
+    __vo uint32_t IMR;    // Interrupt Mask Register
+    __vo uint32_t EMR;    // Event Mask Register
+    __vo uint32_t RTSR;   // Rising Trigger Selection Register
+    __vo uint32_t FTSR;   // Falling Trigger Selection Register
+    __vo uint32_t SWIER;  // Software Interrupt Event Register
+    __vo uint32_t PR;     // Pending Register
+} EXTI_RegDef_t;
+
+typedef struct {
+    __vo uint32_t MEMRMP;       // Memory Remap: Configures memory mapping for boot logic
+    __vo uint32_t PMC;          // Peripheral Mode: Configures peripheral interfaces (e.g., Ethernet)    
+    __vo uint32_t EXTICR[4];   /*  Maps GPIO pins to EXTI lines (e.g., PA0 to EXTI0) */ 
+    uint32_t RESERVED[2];           
+    __vo uint32_t CMPCR;        // Compensation Cell: Enhances I/O performance at high frequencies
+} SYSCFG_RegDef_t;
+
 /*
  * This is a Handle structure for a GPIO pin
  */
@@ -174,3 +194,4 @@ typedef struct
 
 
 #endif /* STM32F405_DEVICE_H_ */
+

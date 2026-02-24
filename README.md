@@ -1,52 +1,55 @@
-**STM32 Bare Metal GPIO Driver & Interrupt-Driven FSM**
-This project demonstrates a high-performance, Bare Metal C++ implementation of a GPIO driver for STM32 microcontrollers (Cortex-M4). It features a custom Hardware Abstraction Layer (HAL) built from the ground up, utilizing an Interrupt-Driven Architecture to manage a Finite State Machine (FSM).
+# STM32F4 Bare Metal: Interrupt-Driven GPIO Driver & FSM
 
-🚀 Key Features
-Custom GPIO Driver (OOP): An object-oriented approach to hardware control, providing direct register access for maximum efficiency.
+A professional, high-performance **Bare Metal C++** implementation of a GPIO driver for the STM32F407 (Cortex-M4). This project demonstrates direct register manipulation, hardware interrupt handling (NVIC/EXTI), and an asynchronous Finite State Machine (FSM), developed without relying on vendor-provided abstraction layers (HAL/LL).
 
-Interrupt-Driven Architecture (EXTI/NVIC): Instead of CPU-heavy polling, this project utilizes External Interrupts (EXTI) and the Nested Vectored Interrupt Controller (NVIC) to handle user inputs asynchronously.
 
-Finite State Machine (FSM): Structured system logic controlling states: OFF -> ON -> BLINK. Transitions are triggered via hardware events.
 
-Low-Level Interrupt Handling: Implementation of extern "C" ISR handlers to interface with the microcontrollers' Vector Table.
+## 🚀 Key Features
 
-Advanced Hardware Configuration: * Rising Edge Detection: Optimized for Active-High hardware circuits.
+* **Bare Metal C++ (OOP):** Object-oriented driver architecture with zero-overhead abstraction, providing direct access to hardware registers.
+* **Interrupt-Driven Execution:** Utilizing the **Nested Vectored Interrupt Controller (NVIC)** and **External Interrupt Controller (EXTI)** for asynchronous event handling, significantly reducing CPU load compared to polling.
+* **Finite State Machine (FSM):** A robust logic controller managing three primary states: `OFF` ➔ `ON` ➔ `BLINK`. 
+* **Deep Hardware Analysis:** Developed based on detailed schematic verification, including edge-trigger optimization and external pull-down resistor considerations.
+* **Non-Blocking Application:** The `BLINK` state is implemented via cycle-counting logic, ensuring the system remains responsive to user input at all times.
 
-Volatile Context Switching: Ensuring data integrity between the main loop and asynchronous ISR execution.
+## 🛠️ Hardware Specifications
 
-Non-Blocking Logic: The "Blink" state uses a cycle-counter approach, allowing the CPU to remain idle or process other tasks while maintaining a responsive UI.
+The implementation is specifically optimized for the **STM32F407G-DISC1** development board.
 
-🛠️ Hardware Configuration
-The project is tailored for the STM32F407 Discovery Board.
+| Peripheral | Pin | Configuration | Electrical Logic |
+| :--- | :--- | :--- | :--- |
+| **User LED (Green)** | **PD12** | Output (Push-Pull) | Active High |
+| **User Button** | **PA0** | Input (EXTI0) | Active High (Ext. Pull-Down) |
 
-Component	Pin	Configuration	Logic
-User LED (Green)	PD12	Output (Push-Pull)	Active High
-User Button	PA0	Input (EXTI0 Interrupt)	Active High (External Pull-Down)
-🧩 Architectural Implementation
-1. Interrupt Service Routine (ISR)
-The system utilizes the EXTI0_IRQHandler to catch button presses. This ensures that the state transition logic is executed immediately, regardless of where the main program is in its execution cycle.
 
-2. Debouncing Logic
-Due to the mechanical nature of the switch and the absence of a hardware capacitor (C38 Not Fitted in schematics), a software-based debounce algorithm is implemented within the ISR to filter out spurious signals.
 
-3. Register-Level Control
-The driver bypasses standard vendor libraries, interacting directly with:
+## 🧩 Architectural Insights
 
-RCC: For peripheral clock management.
+### 1. Interrupt Service Routine (ISR) Implementation
+The project implements the `EXTI0_IRQHandler` using `extern "C"` to ensure correct linkage with the microcontroller's Vector Table. This allows for near-instantaneous state transitions upon button press.
 
-SYSCFG: For interrupt line mapping.
+### 2. Software Debouncing Challenge
+Based on the official schematics (`MB997`), the hardware debounce capacitor **C38 is "Not Fitted"** as a default factory configuration. To counter mechanical contact bounce, a precise software-based stabilization delay is integrated into the ISR.
 
-EXTI: For edge trigger configuration and pending bit management.
 
-NVIC: For interrupt priority and enabling at the core level.
 
-## 📂 File Structure
+### 3. Register Mapping
+Direct manipulation of the following register sets:
+* **RCC:** Peripheral clock gating and management.
+* **GPIOx:** Configuration of `MODER`, `PUPDR`, `OSPEEDR`, and `OTYPER`.
+* **SYSCFG:** Mapping EXTI lines to specific GPIO ports.
+* **EXTI:** Managing rising-edge triggers and pending interrupt flags.
+* **NVIC:** Core-level interrupt priority and enabling.
 
-* `GpioDriver.h` / `GpioDriver.cpp`: The driver class implementation. Handles all direct register manipulation (RCC, MODER, ODR, IDR, etc.).
-* `main.cpp`: System initialization, State Machine logic, and main application loop.
 
----
 
-### 👨‍💻 Author
-Developed as part of a Low-Level Embedded Systems portfolio, demonstrating proficiency in Register-Level programming and C++.
+## 📂 Project Structure
 
+* `GpioDriver.h/cpp`: The core hardware abstraction logic.
+* `main.cpp`: FSM implementation and ISR handling.
+* `stm32_startup.c`: Custom startup script and vector table (Bare Metal).
+
+## 🛠️ Build & Flash
+1. Ensure `arm-none-eabi-gcc` and `openocd` (or ST-Link) are installed.
+2. Compile using the provided `Makefile`.
+3. Flash the binary to the STM32F407 Discovery board.

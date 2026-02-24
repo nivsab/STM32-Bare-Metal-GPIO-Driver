@@ -14,21 +14,21 @@ int main(void) {
     
     // 1. LED Initialization (PA5)
     GPIO_PinConfig_t ledConf = {0};
-    ledConf.GPIO_PinNumber = LED_PIN;
+    ledConf.GPIO_PinNumber = 12;
     ledConf.GPIO_PinMode = GPIO_MODE_OUT;
     ledConf.GPIO_PinSpeed = GPIO_SPEED_LOW;
     ledConf.GPIO_PinOPType = GPIO_OP_TYPE_PP;
     ledConf.GPIO_PinPuPdControl = GPIO_NO_PUPD;
 
-    GpioDriver myLed(GPIOA, ledConf);
+    GpioDriver myLed(GPIOD, ledConf);
     myLed.init();
 
     // 2. Button Initialization (PA0 for EXTI0)
     GPIO_PinConfig_t btnConf = {0};
-    btnConf.GPIO_PinNumber = BUTTON_PIN; // Use Pin 0
-    btnConf.GPIO_PinMode = GPIO_MODE_IT_FT; // Falling edge
+    btnConf.GPIO_PinNumber = 0;
+    btnConf.GPIO_PinMode = GPIO_MODE_IT_RT; // rising edge
     btnConf.GPIO_PinSpeed = GPIO_SPEED_FAST;
-    btnConf.GPIO_PinPuPdControl = GPIO_PIN_PU; // Internal Pull-up
+    btnConf.GPIO_PinPuPdControl = GPIO_NO_PUPD; 
 
     GpioDriver myBtn(GPIOA, btnConf); 
     myBtn.init();
@@ -63,13 +63,12 @@ int main(void) {
 
 extern "C" {
     /**
-     * @brief EXTI0 Interrupt Service Routine
-     * Handles state transitions based on hardware events.
+      .word	EXTI0_IRQHandler             			/* EXTI Line0 interrupt                                               */
      */
     void EXTI0_IRQHandler(void) {
         softwareDelay(20000); // Debounce
 
-        if (pBtn->read() == false) { // Validate button press (Active Low)
+        if (pBtn->read() == true) { 
             if (currentState == STATE_OFF) currentState = STATE_ON;
             else if (currentState == STATE_ON) currentState = STATE_BLINK;
             else currentState = STATE_OFF;

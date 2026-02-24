@@ -12,15 +12,20 @@ private:
 
 public:
 	// Constructor
-	GpioDriver(GPIO_RegDef_t *port, GPIO_PinConfig_t config);
+	explicit GpioDriver(GPIO_RegDef_t *port, GPIO_PinConfig_t config);
 
 	// Methods
 	void init();
 	void write(bool state);
 	void toggle();
-	bool read();
+	bool read() const;
+
+	static void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi);
+	static void GPIO_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
+	void GPIO_IRQHandling();
 };
 
 
 
 #endif /* GPIODRIVER_H_ */
+

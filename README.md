@@ -1,39 +1,44 @@
-# STM32 Bare Metal GPIO Driver & LED State Machine
+**STM32 Bare Metal GPIO Driver & Interrupt-Driven FSM**
+This project demonstrates a high-performance, Bare Metal C++ implementation of a GPIO driver for STM32 microcontrollers (Cortex-M4). It features a custom Hardware Abstraction Layer (HAL) built from the ground up, utilizing an Interrupt-Driven Architecture to manage a Finite State Machine (FSM).
 
-This project demonstrates a custom, **Bare Metal C++** implementation of a GPIO driver for STM32 microcontrollers. It features a complete hardware abstraction layer (HAL) written from scratch without relying on vendor libraries (like HAL or LL), and implements a robust State Machine application.
+🚀 Key Features
+Custom GPIO Driver (OOP): An object-oriented approach to hardware control, providing direct register access for maximum efficiency.
 
-## 🚀 Key Features
+Interrupt-Driven Architecture (EXTI/NVIC): Instead of CPU-heavy polling, this project utilizes External Interrupts (EXTI) and the Nested Vectored Interrupt Controller (NVIC) to handle user inputs asynchronously.
 
-* **Custom GPIO Driver (OOP):** Object-Oriented driver providing direct register access.
-    * Full configuration control: Clock Enable, Mode, Output Type, Speed, and Pull-Up/Down resistors.
-    * **Direct Register Manipulation:** Efficient control of `ODR` (Output) and `IDR` (Input) registers using standard bitwise operators (`|=`, `&= ~`) for Read-Modify-Write logic.
-* **Finite State Machine (FSM):** Structured logic controlling system states (`OFF` -> `ON` -> `BLINK`).
-* **Software Debouncing:** Robust input handling mechanism including **Falling Edge Detection** and signal stabilization delays to filter mechanical switch noise.
-* **Non-Blocking Logic:** The "Blink" state is implemented using a cycle-counter approach, ensuring the main loop remains responsive to button presses at all times (no blocking `delay` inside logic states).
+Finite State Machine (FSM): Structured system logic controlling states: OFF -> ON -> BLINK. Transitions are triggered via hardware events.
 
-## 🛠️ Hardware Configuration
+Low-Level Interrupt Handling: Implementation of extern "C" ISR handlers to interface with the microcontrollers' Vector Table.
 
-The code is configured for standard **STM32 Nucleo** pinouts but is portable to other boards.
+Advanced Hardware Configuration: * Rising Edge Detection: Optimized for Active-High hardware circuits.
 
-| Component | Pin | Configuration | Logic |
-| :--- | :--- | :--- | :--- |
-| **User LED** | `PA5` | Output (Push-Pull) | Active High |
-| **User Button** | `PC13`| Input | **Internal Pull-Up** (Active Low) |
+Volatile Context Switching: Ensuring data integrity between the main loop and asynchronous ISR execution.
 
-## 💡 System Logic & Flow
+Non-Blocking Logic: The "Blink" state uses a cycle-counter approach, allowing the CPU to remain idle or process other tasks while maintaining a responsive UI.
 
-The application runs inside an infinite `while(1)` loop handling two main tasks:
+🛠️ Hardware Configuration
+The project is tailored for the STM32F407 Discovery Board.
 
-1.  **Input Processing:**
-    * Polls the button state.
-    * Detects a **Falling Edge** (Transition from `1` to `0`).
-    * Applies a debounce delay and re-verifies the state.
-    * Triggers a state transition upon valid press.
+Component	Pin	Configuration	Logic
+User LED (Green)	PD12	Output (Push-Pull)	Active High
+User Button	PA0	Input (EXTI0 Interrupt)	Active High (External Pull-Down)
+🧩 Architectural Implementation
+1. Interrupt Service Routine (ISR)
+The system utilizes the EXTI0_IRQHandler to catch button presses. This ensures that the state transition logic is executed immediately, regardless of where the main program is in its execution cycle.
 
-2.  **State Execution:**
-    * **STATE_OFF:** LED is driven low.
-    * **STATE_ON:** LED is driven high.
-    * **STATE_BLINK:** LED toggles at a fixed interval without blocking the CPU.
+2. Debouncing Logic
+Due to the mechanical nature of the switch and the absence of a hardware capacitor (C38 Not Fitted in schematics), a software-based debounce algorithm is implemented within the ISR to filter out spurious signals.
+
+3. Register-Level Control
+The driver bypasses standard vendor libraries, interacting directly with:
+
+RCC: For peripheral clock management.
+
+SYSCFG: For interrupt line mapping.
+
+EXTI: For edge trigger configuration and pending bit management.
+
+NVIC: For interrupt priority and enabling at the core level.
 
 ## 📂 File Structure
 
@@ -44,3 +49,4 @@ The application runs inside an infinite `while(1)` loop handling two main tasks:
 
 ### 👨‍💻 Author
 Developed as part of a Low-Level Embedded Systems portfolio, demonstrating proficiency in Register-Level programming and C++.
+
